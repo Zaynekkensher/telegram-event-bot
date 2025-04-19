@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 import os
 import shlex
+from event_db import add_event, get_events, delete_event
 
 if not os.getenv("BOT_TOKEN"):
     raise RuntimeError("❌ Переменная окружения BOT_TOKEN не задана")
@@ -70,20 +71,9 @@ async def quick_add_event(message: Message):
     if not is_valid_time(time_str):
         return await message.answer("❗ Неверное время. Формат: чч:мм")
 
-    chat_id = str(message.chat.id)
-    data = load_data()
-    if chat_id not in data:
-        data[chat_id] = []
-    data[chat_id].append({
-        "date": date_str,
-        "time": time_str,
-        "city": city,
-        "type": ev_type,
-        "place": place,
-        "description": description
-    })
-    save_data(data)
-
+    await add_event(
+        message.chat.id, date_str, time_str, city, ev_type, place, description
+    )
     await message.answer("✅ Событие добавлено!")
 
 def is_valid_date(date_str):
@@ -97,38 +87,22 @@ def is_valid_time(time_str):
     return bool(re.fullmatch(r"\d{2}:\d{2}", time_str)) and \
            0 <= int(time_str[:2]) < 24 and 0 <= int(time_str[3:]) < 60
 
-def load_data():
-    if not os.path.exists("data.json"):
-        return {}
-    with open("data.json", "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def save_data(data):
-    with open("data.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
 @dp.callback_query(F.data == "list_events")
 async def cb_list_events(callback: CallbackQuery):
     chat_id = str(callback.message.chat.id)
     now = datetime.now()
-    data = load_data()
-    events = data.get(chat_id, [])
+    events = await get_events(callback.message.chat.id)
 
     if not events:
         await callback.message.answer("📭 Список событий пуст.")
         await callback.answer()
         return
 
-    def parse_datetime(e):
-        return datetime.strptime(f"{e['date']} {e['time']}", "%d.%m.%Y %H:%M")
-
-    events.sort(key=parse_datetime)
-
     text = "<b>📅 Список событий:</b>\n\n"
-    for idx, ev in enumerate(events, start=1):
-        dt = parse_datetime(ev)
+    for ev in events:
+        dt = datetime.strptime(f"{ev['date']} {ev['time']}", "%d.%m.%Y %H:%M")
         block = (
-            f"{idx}. 📅 <b>{ev['date']} {ev['time']}</b>\n"
+            f"{ev['id']}. 📅 <b>{ev['date']} {ev['time']}</b>\n"
             f"🏷 {ev['type']} {ev['city']}\n"
             f"🏛 {ev['place']}\n"
             f"📝 {ev['description']}\n"
@@ -143,8 +117,7 @@ async def cb_list_events(callback: CallbackQuery):
 @dp.callback_query(F.data == "delete_event")
 async def cb_delete(callback: CallbackQuery):
     chat_id = str(callback.message.chat.id)
-    data = load_data()
-    events = data.get(chat_id, [])
+    events = await get_events(chat_id)
 
     if not events:
         await callback.message.answer("📭 Список событий пуст.")
@@ -152,28 +125,20 @@ async def cb_delete(callback: CallbackQuery):
         return
 
     message = "Введите номер события, которое хотите удалить.\n\n"
-    for idx, ev in enumerate(events, start=1):
-        message += f"{idx}. {ev['date']} {ev['time']} — {ev['type']} {ev['city']}\n"
+    for ev in events:
+        message += f"{ev['id']}. {ev['date']} {ev['time']} — {ev['type']} {ev['city']}\n"
 
     await callback.message.answer(message)
     await callback.answer()
 
 @dp.message()
 async def delete_by_number(message: Message):
-    chat_id = str(message.chat.id)
-    data = load_data()
-    events = data.get(chat_id, [])
-
     if not message.text.isdigit():
         return
 
-    idx = int(message.text) - 1
-    if 0 <= idx < len(events):
-        removed = events.pop(idx)
-        save_data(data)
-        await message.answer(f"✅ Событие удалено: {removed['date']} {removed['time']} — {removed['type']} {removed['city']}")
-    else:
-        await message.answer("❌ Неверный номер. Попробуйте снова.")
+    event_id = int(message.text)
+    await delete_event(message.chat.id, event_id)
+    await message.answer("✅ Событие удалено.")
 
 import asyncio
 
