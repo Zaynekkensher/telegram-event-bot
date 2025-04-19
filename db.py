@@ -8,12 +8,14 @@ CREATE_EVENTS_TABLE = """
 CREATE TABLE IF NOT EXISTS events (
     id SERIAL PRIMARY KEY,
     chat_id BIGINT NOT NULL,
+    event_number INTEGER NOT NULL,
     date TEXT NOT NULL,
     time TEXT NOT NULL,
     city TEXT NOT NULL,
     type TEXT NOT NULL,
     place TEXT,
-    description TEXT
+    description TEXT,
+    UNIQUE(chat_id, event_number)
 );
 """
 
