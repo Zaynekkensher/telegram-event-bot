@@ -2,6 +2,8 @@ import asyncpg
 import os
 
 DB_URL = os.getenv("DB_URL")
+if not DB_URL:
+    print("❗ DB_URL is not set! Falling back to localhost (this will fail on Railway)")
 print("🔧 DB_URL:", DB_URL)
 
 async def add_event(chat_id, date, time, city, type_, place, description):
