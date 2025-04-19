@@ -106,8 +106,36 @@ def save_data(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 @dp.callback_query(F.data == "list_events")
-async def cb_list(callback: CallbackQuery):
-    await callback.message.answer("📋 Вы нажали: Список событий")
+async def cb_list_events(callback: CallbackQuery):
+    chat_id = str(callback.message.chat.id)
+    now = datetime.now()
+    data = load_data()
+    events = data.get(chat_id, [])
+
+    if not events:
+        await callback.message.answer("📭 Список событий пуст.")
+        await callback.answer()
+        return
+
+    def parse_datetime(e):
+        return datetime.strptime(f"{e['date']} {e['time']}", "%d.%m.%Y %H:%M")
+
+    events.sort(key=parse_datetime)
+
+    text = "<b>📅 Список событий:</b>\n\n"
+    for ev in events:
+        dt = parse_datetime(ev)
+        block = (
+            f"📅 <b>{ev['date']} {ev['time']}</b>\n"
+            f"🏷 {ev['type']} в {ev['city']}\n"
+            f"🏛 {ev['place']}\n"
+            f"📝 {ev['description']}\n"
+        )
+        if dt < now:
+            block = f"<i><span class='tg-spoiler'>{block}</span></i>"
+        text += block + "\n"
+
+    await callback.message.answer(text)
     await callback.answer()
 
 @dp.callback_query(F.data == "delete_event")
