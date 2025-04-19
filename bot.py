@@ -41,7 +41,7 @@ def main_menu():
 # === /start ===
 @dp.message(Command("start"))
 async def start_handler(message: Message):
-    msg = await message.answer("Привет! Выберите действие:", reply_markup=main_menu())
+    msg = await message.answer("Привет! Выберите действие (сообщения будут удалены через 10 секунд):", reply_markup=main_menu())
     await asyncio.sleep(10)
     await msg.delete()
     await message.delete()
