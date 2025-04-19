@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 import os
 import shlex
-from event_db import add_event, get_events, delete_event  # noqa
+from event_db import add_event, get_events, delete_event
 
 if not os.getenv("BOT_TOKEN"):
     raise RuntimeError("❌ Переменная окружения BOT_TOKEN не задана")
