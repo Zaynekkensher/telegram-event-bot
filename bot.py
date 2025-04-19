@@ -9,6 +9,7 @@ import re
 import json
 from datetime import datetime
 import os
+import shlex
 
 # === 🔐 Вставь сюда свой токен от BotFather ===
 BOT_TOKEN = "7882211754:AAEHyH5kpQoFNWVtQrc7cu-3512uwsJaEMc"
@@ -42,9 +43,46 @@ async def start_handler(message: Message):
 # === Заглушки для кнопок ===
 @dp.callback_query(F.data == "add_event")
 async def cb_add_event(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("Введите дату события (дд.мм.гггг):")
-    await state.set_state(AddEvent.date)
+    await callback.message.answer(
+        "Введите данные о событии по шаблону:\n\n"
+        '/добавить дд.мм.гггг чч:мм "Город с пробелами" "Тип события" "Место с пробелами" "Описание с пробелами"'
+    )
     await callback.answer()
+
+@dp.message(Command("добавить"))
+async def quick_add_event(message: Message):
+    try:
+        parts = shlex.split(message.text)
+        if len(parts) < 7:
+            raise ValueError
+        _, date_str, time_str, *rest = parts
+        city, ev_type, place, description = rest
+    except ValueError:
+        return await message.answer(
+            "❗️Неверный формат.\nИспользуйте шаблон:\n"
+            '/добавить дд.мм.гггг чч:мм "Город с пробелами" "Тип события" "Место с пробелами" "Описание с пробелами"'
+        )
+
+    if not is_valid_date(date_str):
+        return await message.answer("❗ Неверная дата. Формат: дд.мм.гггг")
+    if not is_valid_time(time_str):
+        return await message.answer("❗ Неверное время. Формат: чч:мм")
+
+    chat_id = str(message.chat.id)
+    data = load_data()
+    if chat_id not in data:
+        data[chat_id] = []
+    data[chat_id].append({
+        "date": date_str,
+        "time": time_str,
+        "city": city,
+        "type": ev_type,
+        "place": place,
+        "description": description
+    })
+    save_data(data)
+
+    await message.answer("✅ Событие добавлено!")
 
 def is_valid_date(date_str):
     try:
@@ -66,57 +104,6 @@ def load_data():
 def save_data(data):
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
-@dp.message(AddEvent.date)
-async def step_date(message: Message, state: FSMContext):
-    if not is_valid_date(message.text):
-        await message.answer("❌ Неверный формат. Введите дату в формате дд.мм.гггг:")
-        return
-    await state.update_data(date=message.text)
-    await message.answer("Введите время события (чч:мм):")
-    await state.set_state(AddEvent.time)
-
-@dp.message(AddEvent.time)
-async def step_time(message: Message, state: FSMContext):
-    if not is_valid_time(message.text):
-        await message.answer("❌ Неверный формат. Введите время в формате чч:мм:")
-        return
-    await state.update_data(time=message.text)
-    await message.answer("Введите город события:")
-    await state.set_state(AddEvent.city)
-
-@dp.message(AddEvent.city)
-async def step_city(message: Message, state: FSMContext):
-    await state.update_data(city=message.text)
-    await message.answer("Введите тип события:")
-    await state.set_state(AddEvent.type)
-
-@dp.message(AddEvent.type)
-async def step_type(message: Message, state: FSMContext):
-    await state.update_data(type=message.text)
-    await message.answer("Введите место события (можно пропустить):")
-    await state.set_state(AddEvent.place)
-
-@dp.message(AddEvent.place)
-async def step_place(message: Message, state: FSMContext):
-    await state.update_data(place=message.text)
-    await message.answer("Введите описание события (можно пропустить):")
-    await state.set_state(AddEvent.description)
-
-@dp.message(AddEvent.description)
-async def step_description(message: Message, state: FSMContext):
-    await state.update_data(description=message.text)
-    user_data = await state.get_data()
-    chat_id = str(message.chat.id)
-
-    data = load_data()
-    if chat_id not in data:
-        data[chat_id] = []
-    data[chat_id].append(user_data)
-    save_data(data)
-
-    await message.answer("✅ Событие добавлено!")
-    await state.clear()
 
 @dp.callback_query(F.data == "list_events")
 async def cb_list(callback: CallbackQuery):
