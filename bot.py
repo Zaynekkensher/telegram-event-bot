@@ -105,7 +105,8 @@ async def step_place(message: Message, state: FSMContext):
 
 @dp.message(AddEvent.description)
 async def step_description(message: Message, state: FSMContext):
-    user_data = await state.update_data(description=message.text)
+    await state.update_data(description=message.text)
+    user_data = await state.get_data()
     chat_id = str(message.chat.id)
 
     data = load_data()
@@ -129,4 +130,4 @@ async def cb_delete(callback: CallbackQuery):
 
 # === Запуск ===
 if __name__ == "__main__":
-    asyncio.run(dp.start_polling(bot))
+    asyncio.run(dp.start_polling(bot))с
