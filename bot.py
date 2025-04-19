@@ -123,10 +123,10 @@ async def cb_list_events(callback: CallbackQuery):
     events.sort(key=parse_datetime)
 
     text = "<b>📅 Список событий:</b>\n\n"
-    for ev in events:
+    for idx, ev in enumerate(events, start=1):
         dt = parse_datetime(ev)
         block = (
-            f"📅 <b>{ev['date']} {ev['time']}</b>\n"
+            f"{idx}. 📅 <b>{ev['date']} {ev['time']}</b>\n"
             f"🏷 {ev['type']} {ev['city']}\n"
             f"🏛 {ev['place']}\n"
             f"📝 {ev['description']}\n"
@@ -140,8 +140,38 @@ async def cb_list_events(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "delete_event")
 async def cb_delete(callback: CallbackQuery):
-    await callback.message.answer("🗑 Вы нажали: Удалить событие")
+    chat_id = str(callback.message.chat.id)
+    data = load_data()
+    events = data.get(chat_id, [])
+
+    if not events:
+        await callback.message.answer("📭 Список событий пуст.")
+        await callback.answer()
+        return
+
+    message = "Введите номер события, которое хотите удалить.\n\n"
+    for idx, ev in enumerate(events, start=1):
+        message += f"{idx}. {ev['date']} {ev['time']} — {ev['type']} {ev['city']}\n"
+
+    await callback.message.answer(message)
     await callback.answer()
+
+@dp.message()
+async def delete_by_number(message: Message):
+    chat_id = str(message.chat.id)
+    data = load_data()
+    events = data.get(chat_id, [])
+
+    if not message.text.isdigit():
+        return
+
+    idx = int(message.text) - 1
+    if 0 <= idx < len(events):
+        removed = events.pop(idx)
+        save_data(data)
+        await message.answer(f"✅ Событие удалено: {removed['date']} {removed['time']} — {removed['type']} {removed['city']}")
+    else:
+        await message.answer("❌ Неверный номер. Попробуйте снова.")
 
 # === Запуск ===
 if __name__ == "__main__":
