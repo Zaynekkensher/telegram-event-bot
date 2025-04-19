@@ -126,11 +126,15 @@ async def cb_delete(callback: CallbackQuery):
         await callback.answer()
         return
 
-    message = "Введите номер события, которое хотите удалить.\n\n"
+    keyboard = []
     for ev in events:
-        message += f"{ev['id']}. {ev['date']} {ev['time']} — {ev['type']} {ev['city']}\n"
+        button = InlineKeyboardButton(
+            text=f"❌ Удалить: {ev['id']} {ev['type']} {ev['city']}",
+            callback_data=f"delete_{ev['id']}"
+        )
+        keyboard.append([button])
 
-    await callback.message.answer(message)
+    await callback.message.answer("Выберите событие для удаления:", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
     await callback.answer()
 
 @dp.message()
@@ -141,6 +145,17 @@ async def delete_by_number(message: Message):
     event_id = int(message.text)
     await delete_event(message.chat.id, event_id)
     await message.answer("✅ Событие удалено.")
+
+@dp.callback_query(F.data.startswith("delete_"))
+async def handle_delete_callback(callback: CallbackQuery):
+    try:
+        event_id = int(callback.data.split("_")[1])
+        await delete_event(callback.message.chat.id, event_id)
+        await callback.message.answer("🗑 Событие удалено.")
+        await callback.answer()
+    except Exception as e:
+        await callback.message.answer(f"⚠ Ошибка при удалении: {e}")
+        await callback.answer()
 
 import asyncio
 
