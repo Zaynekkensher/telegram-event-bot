@@ -41,9 +41,9 @@ def main_menu():
 # === /start ===
 @dp.message(Command("start"))
 async def start_handler(message: Message):
-    msg = await message.answer("Привет! Выберите действие (сообщения будут удалены через 10 секунд):", reply_markup=main_menu())
+    sent_menu = await message.answer("Привет! Выберите действие (сообщения будут удалены через 10 секунд):", reply_markup=main_menu())
     await asyncio.sleep(10)
-    await msg.delete()
+    await sent_menu.delete()
     await message.delete()
 
 # === Заглушки для кнопок ===
@@ -166,10 +166,10 @@ async def cb_delete(callback: CallbackQuery):
         )
         keyboard.append([button])
 
-    sent = await callback.message.answer("Выберите событие для удаления:", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+    prompt_msg = await callback.message.answer("Выберите событие для удаления:", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
     await asyncio.sleep(10)
-    await sent.delete()
-    await callback.answer()
+    await prompt_msg.delete()
+    await callback.message.delete()
 
 @dp.message()
 async def delete_by_number(message: Message):
@@ -191,7 +191,7 @@ async def handle_delete_callback(callback: CallbackQuery):
         msg = await callback.message.answer("🗑 Событие удалено.")
         await asyncio.sleep(10)
         await msg.delete()
-        await callback.answer()
+        await callback.message.delete()
     except Exception as e:
         msg = await callback.message.answer(f"⚠ Ошибка при удалении: {e}")
         await asyncio.sleep(10)
