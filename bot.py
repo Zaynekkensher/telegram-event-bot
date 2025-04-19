@@ -123,8 +123,9 @@ def is_valid_time(time_str):
 @dp.callback_query(F.data == "list_events")
 async def cb_list_events(callback: CallbackQuery):
     chat_id = callback.message.chat.id
-    now = datetime.now()
     events = await get_events(callback.message.chat.id)
+    # Сортировка по дате и времени
+    events.sort(key=lambda ev: datetime.strptime(f"{ev['date']} {ev['time']}", "%d.%m.%Y %H:%M"))
 
     if not events:
         msg = await callback.message.answer("📭 Список событий пуст.")
@@ -143,7 +144,7 @@ async def cb_list_events(callback: CallbackQuery):
             f"🏛 {ev['place']}\n"
             f"📝 {ev['description']}\n"
         )
-        if dt < now:
+        if dt < datetime.now():
             block = f"<i><span class='tg-spoiler'>{block}</span></i>"
         text += block + "\n"
 
