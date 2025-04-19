@@ -91,7 +91,7 @@ def is_valid_time(time_str):
 
 @dp.callback_query(F.data == "list_events")
 async def cb_list_events(callback: CallbackQuery):
-    chat_id = str(callback.message.chat.id)
+    chat_id = callback.message.chat.id
     now = datetime.now()
     events = await get_events(callback.message.chat.id)
 
@@ -118,7 +118,7 @@ async def cb_list_events(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "delete_event")
 async def cb_delete(callback: CallbackQuery):
-    chat_id = str(callback.message.chat.id)
+    chat_id = callback.message.chat.id
     events = await get_events(chat_id)
 
     if not events:
