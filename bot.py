@@ -41,16 +41,21 @@ def main_menu():
 # === /start ===
 @dp.message(Command("start"))
 async def start_handler(message: Message):
-    await message.answer("Привет! Выберите действие:", reply_markup=main_menu())
+    msg = await message.answer("Привет! Выберите действие:", reply_markup=main_menu())
+    await asyncio.sleep(10)
+    await msg.delete()
+    await message.delete()
 
 # === Заглушки для кнопок ===
 @dp.callback_query(F.data == "add_event")
 async def cb_add_event(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(
+    msg = await callback.message.answer(
         "Введите данные о событии по шаблону:\n\n"
         '/добавить дд.мм.гггг чч:мм "Город с пробелами" "Тип события" "Место с пробелами" "Описание с пробелами"'
     )
-    await callback.answer()
+    await asyncio.sleep(10)
+    await msg.delete()
+    await callback.message.delete()
 
 @dp.message(Command("добавить"))
 async def quick_add_event(message: Message):
@@ -61,23 +66,41 @@ async def quick_add_event(message: Message):
         _, date_str, time_str, *rest = parts
         city, ev_type, place, description = rest
     except ValueError:
-        return await message.answer(
+        msg = await message.answer(
             "❗️Неверный формат.\nИспользуйте шаблон:\n"
             '/добавить дд.мм.гггг чч:мм "Город с пробелами" "Тип события" "Место с пробелами" "Описание с пробелами"'
         )
+        await asyncio.sleep(10)
+        await msg.delete()
+        await message.delete()
+        return
 
     if not is_valid_date(date_str):
-        return await message.answer("❗ Неверная дата. Формат: дд.мм.гггг")
+        msg = await message.answer("❗ Неверная дата. Формат: дд.мм.гггг")
+        await asyncio.sleep(10)
+        await msg.delete()
+        await message.delete()
+        return
     if not is_valid_time(time_str):
-        return await message.answer("❗ Неверное время. Формат: чч:мм")
+        msg = await message.answer("❗ Неверное время. Формат: чч:мм")
+        await asyncio.sleep(10)
+        await msg.delete()
+        await message.delete()
+        return
 
     try:
         await add_event(
             message.chat.id, date_str, time_str, city, ev_type, place, description
         )
-        await message.answer("✅ Событие добавлено!")
+        msg = await message.answer("✅ Событие добавлено!")
+        await asyncio.sleep(10)
+        await msg.delete()
+        await message.delete()
     except Exception as e:
-        await message.answer(f"⚠ Ошибка при добавлении события: {e}")
+        msg = await message.answer(f"⚠ Ошибка при добавлении события: {e}")
+        await asyncio.sleep(10)
+        await msg.delete()
+        await message.delete()
 
 def is_valid_date(date_str):
     try:
@@ -97,7 +120,10 @@ async def cb_list_events(callback: CallbackQuery):
     events = await get_events(callback.message.chat.id)
 
     if not events:
-        await callback.message.answer("📭 Список событий пуст.")
+        msg = await callback.message.answer("📭 Список событий пуст.")
+        await asyncio.sleep(10)
+        await msg.delete()
+        await callback.message.delete()
         await callback.answer()
         return
 
@@ -125,7 +151,10 @@ async def cb_delete(callback: CallbackQuery):
     events = await get_events(chat_id)
 
     if not events:
-        await callback.message.answer("📭 Список событий пуст.")
+        msg = await callback.message.answer("📭 Список событий пуст.")
+        await asyncio.sleep(10)
+        await msg.delete()
+        await callback.message.delete()
         await callback.answer()
         return
 
@@ -149,17 +178,24 @@ async def delete_by_number(message: Message):
 
     event_id = int(message.text)
     await delete_event(message.chat.id, event_id)
-    await message.answer("✅ Событие удалено.")
+    msg = await message.answer("✅ Событие удалено.")
+    await asyncio.sleep(10)
+    await msg.delete()
+    await message.delete()
 
 @dp.callback_query(F.data.startswith("delete_"))
 async def handle_delete_callback(callback: CallbackQuery):
     try:
         event_id = int(callback.data.split("_")[1])
         await delete_event(callback.message.chat.id, event_id)
-        await callback.message.answer("🗑 Событие удалено.")
+        msg = await callback.message.answer("🗑 Событие удалено.")
+        await asyncio.sleep(10)
+        await msg.delete()
         await callback.answer()
     except Exception as e:
-        await callback.message.answer(f"⚠ Ошибка при удалении: {e}")
+        msg = await callback.message.answer(f"⚠ Ошибка при удалении: {e}")
+        await asyncio.sleep(10)
+        await msg.delete()
         await callback.answer()
 
 if __name__ == "__main__":
