@@ -13,8 +13,13 @@ from datetime import datetime
 import os
 import shlex
 
-# === 🔐 Вставь сюда свой токен от BotFather ===
-BOT_TOKEN = "7882211754:AAEHyH5kpQoFNWVtQrc7cu-3512uwsJaEMc"
+if not os.getenv("BOT_TOKEN"):
+    raise RuntimeError("❌ Переменная окружения BOT_TOKEN не задана")
+
+if not os.getenv("WEBHOOK_BASE"):
+    raise RuntimeError("❌ Переменная окружения WEBHOOK_BASE не задана")
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # === Инициализация ===
 bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
