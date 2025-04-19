@@ -47,10 +47,11 @@ async def start_handler(message: Message):
     )
     await asyncio.sleep(10)
     await sent_menu.delete()
-    try:
-        await message.delete()
-    except Exception as e:
-        print(f"Не удалось удалить сообщение /start: {e}")
+    if message.chat.type == "private":
+        try:
+            await message.delete()
+        except Exception as e:
+            print(f"Не удалось удалить сообщение /start: {e}")
 
 # === Заглушки для кнопок ===
 @dp.callback_query(F.data == "add_event")
