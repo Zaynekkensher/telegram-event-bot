@@ -195,4 +195,4 @@ async def on_startup():
 async def on_shutdown():
     await bot.delete_webhook()
 
-app.router.add_route("*", WEBHOOK_PATH, SimpleRequestHandler(dispatcher=dp, bot=bot))
+app.router.add_route("*", f"/webhook/{BOT_TOKEN}", SimpleRequestHandler(dispatcher=dp, bot=bot))
