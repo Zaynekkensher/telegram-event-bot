@@ -4,6 +4,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.enums import ParseMode
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from fastapi import FastAPI, Request
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiogram.webhook.runner import WebhookRunner
 import asyncio
 import re
 import json
@@ -174,5 +177,24 @@ async def delete_by_number(message: Message):
         await message.answer("❌ Неверный номер. Попробуйте снова.")
 
 # === Запуск ===
-if __name__ == "__main__":
-    asyncio.run(dp.start_polling(bot))
+PORT = int(os.getenv("PORT", 10000))
+WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
+WEBHOOK_BASE = os.getenv("WEBHOOK_BASE")  # например https://your-bot.onrender.com
+WEBHOOK_URL = f"{WEBHOOK_BASE}{WEBHOOK_PATH}"
+
+app = FastAPI()
+
+@app.get("/")
+async def root():
+    return {"status": "ok"}
+
+@app.on_event("startup")
+async def on_startup():
+    await bot.set_webhook(WEBHOOK_URL)
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await bot.delete_webhook()
+
+setup_application(app, dp, bot=bot)
+app.router.add_route("*", WEBHOOK_PATH, SimpleRequestHandler(dispatcher=dp, bot=bot))
