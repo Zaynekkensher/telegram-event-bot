@@ -41,10 +41,16 @@ def main_menu():
 # === /start ===
 @dp.message(Command("start"))
 async def start_handler(message: Message):
-    sent_menu = await message.answer("Привет! Выберите действие (сообщения будут удалены через 10 секунд):", reply_markup=main_menu())
+    sent_menu = await message.answer(
+        "Привет! Выберите действие (сообщения будут удалены через 10 секунд):",
+        reply_markup=main_menu()
+    )
     await asyncio.sleep(10)
     await sent_menu.delete()
-    await message.delete()
+    try:
+        await message.delete()
+    except Exception as e:
+        print(f"Не удалось удалить сообщение /start: {e}")
 
 # === Заглушки для кнопок ===
 @dp.callback_query(F.data == "add_event")
