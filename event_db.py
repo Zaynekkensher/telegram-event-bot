@@ -13,10 +13,12 @@ async def add_event(chat_id, date, time, city, type_, place, description):
     except Exception as e:
         print("❌ Failed to connect to DB:", e)
         raise
+    row = await conn.fetchrow("SELECT MAX(event_number) FROM events WHERE chat_id = $1", chat_id)
+    next_number = (row[0] or 0) + 1
     await conn.execute("""
-        INSERT INTO events (chat_id, date, time, city, type, place, description)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-    """, chat_id, date, time, city, type_, place, description)
+        INSERT INTO events (chat_id, event_number, date, time, city, type, place, description)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    """, chat_id, next_number, date, time, city, type_, place, description)
     await conn.close()
 
 async def get_events(chat_id):
@@ -27,7 +29,7 @@ async def get_events(chat_id):
         print("❌ Failed to connect to DB:", e)
         raise
     rows = await conn.fetch("""
-        SELECT id, date, time, city, type, place, description
+        SELECT event_number, date, time, city, type, place, description
         FROM events
         WHERE chat_id = $1
         ORDER BY date, time
@@ -35,7 +37,7 @@ async def get_events(chat_id):
     await conn.close()
     return rows
 
-async def delete_event(chat_id, event_id):
+async def delete_event(chat_id, event_number):
     try:
         print("🔌 Connecting to DB:", DB_URL)
         conn = await asyncpg.connect(DB_URL)
@@ -44,8 +46,8 @@ async def delete_event(chat_id, event_id):
         raise
     await conn.execute("""
         DELETE FROM events
-        WHERE chat_id = $1 AND id = $2
-    """, chat_id, event_id)
+        WHERE chat_id = $1 AND event_number = $2
+    """, chat_id, event_number)
     await conn.close()
 
 __all__ = ["add_event", "get_events", "delete_event"]
