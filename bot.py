@@ -129,7 +129,7 @@ async def cb_delete(callback: CallbackQuery):
     keyboard = []
     for ev in events:
         button = InlineKeyboardButton(
-            text=f"❌ Удалить: {ev['id']} {ev['type']} {ev['city']}",
+            text=f"❌ Удалить: {ev['id']} {ev['date']} {ev['time']} {ev['type']} {ev['city']}",
             callback_data=f"delete_{ev['id']}"
         )
         keyboard.append([button])
