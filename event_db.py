@@ -5,7 +5,12 @@ DB_URL = os.getenv("DB_URL")
 print("🔧 DB_URL:", DB_URL)
 
 async def add_event(chat_id, date, time, city, type_, place, description):
-    conn = await asyncpg.connect(DB_URL)
+    try:
+        print("🔌 Connecting to DB:", DB_URL)
+        conn = await asyncpg.connect(DB_URL)
+    except Exception as e:
+        print("❌ Failed to connect to DB:", e)
+        raise
     await conn.execute("""
         INSERT INTO events (chat_id, date, time, city, type, place, description)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -13,7 +18,12 @@ async def add_event(chat_id, date, time, city, type_, place, description):
     await conn.close()
 
 async def get_events(chat_id):
-    conn = await asyncpg.connect(DB_URL)
+    try:
+        print("🔌 Connecting to DB:", DB_URL)
+        conn = await asyncpg.connect(DB_URL)
+    except Exception as e:
+        print("❌ Failed to connect to DB:", e)
+        raise
     rows = await conn.fetch("""
         SELECT id, date, time, city, type, place, description
         FROM events
@@ -24,7 +34,12 @@ async def get_events(chat_id):
     return rows
 
 async def delete_event(chat_id, event_id):
-    conn = await asyncpg.connect(DB_URL)
+    try:
+        print("🔌 Connecting to DB:", DB_URL)
+        conn = await asyncpg.connect(DB_URL)
+    except Exception as e:
+        print("❌ Failed to connect to DB:", e)
+        raise
     await conn.execute("""
         DELETE FROM events
         WHERE chat_id = $1 AND id = $2
