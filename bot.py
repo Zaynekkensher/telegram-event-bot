@@ -4,7 +4,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.enums import ParseMode
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-import asyncio
 import re
 import json
 from datetime import datetime
@@ -71,10 +70,13 @@ async def quick_add_event(message: Message):
     if not is_valid_time(time_str):
         return await message.answer("❗ Неверное время. Формат: чч:мм")
 
-    await add_event(
-        message.chat.id, date_str, time_str, city, ev_type, place, description
-    )
-    await message.answer("✅ Событие добавлено!")
+    try:
+        await add_event(
+            message.chat.id, date_str, time_str, city, ev_type, place, description
+        )
+        await message.answer("✅ Событие добавлено!")
+    except Exception as e:
+        await message.answer(f"⚠ Ошибка при добавлении события: {e}")
 
 def is_valid_date(date_str):
     try:
