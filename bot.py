@@ -127,7 +127,7 @@ async def cb_list_events(callback: CallbackQuery):
         dt = parse_datetime(ev)
         block = (
             f"📅 <b>{ev['date']} {ev['time']}</b>\n"
-            f"🏷 {ev['type']} в {ev['city']}\n"
+            f"🏷 {ev['type']} {ev['city']}\n"
             f"🏛 {ev['place']}\n"
             f"📝 {ev['description']}\n"
         )
