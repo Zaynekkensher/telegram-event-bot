@@ -2,6 +2,7 @@ import asyncpg
 import os
 
 DB_URL = os.getenv("DB_URL")
+print("🔧 DB_URL:", DB_URL)
 
 async def add_event(chat_id, date, time, city, type_, place, description):
     conn = await asyncpg.connect(DB_URL)
