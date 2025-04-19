@@ -4,8 +4,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.enums import ParseMode
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from fastapi import FastAPI, Request
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 import asyncio
 import re
 import json
@@ -15,9 +13,6 @@ import shlex
 
 if not os.getenv("BOT_TOKEN"):
     raise RuntimeError("❌ Переменная окружения BOT_TOKEN не задана")
-
-if not os.getenv("WEBHOOK_BASE"):
-    raise RuntimeError("❌ Переменная окружения WEBHOOK_BASE не задана")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -180,24 +175,7 @@ async def delete_by_number(message: Message):
     else:
         await message.answer("❌ Неверный номер. Попробуйте снова.")
 
-# === Запуск ===
-PORT = int(os.getenv("PORT", 10000))
-WEBHOOK_PATH = "/webhook"
-WEBHOOK_BASE = os.getenv("WEBHOOK_BASE")  # например https://your-bot.onrender.com
-WEBHOOK_URL = f"{WEBHOOK_BASE}{WEBHOOK_PATH}"
+import asyncio
 
-app = FastAPI()
-
-@app.get("/")
-async def root():
-    return {"status": "ok"}
-
-@app.on_event("startup")
-async def on_startup():
-    await bot.set_webhook(WEBHOOK_URL)
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    await bot.delete_webhook()
-
-app.router.add_route("*", "/webhook", SimpleRequestHandler(dispatcher=dp, bot=bot))
+if __name__ == "__main__":
+    asyncio.run(dp.start_polling(bot))
