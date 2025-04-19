@@ -128,7 +128,7 @@ async def cb_list_events(callback: CallbackQuery):
     # Сортировка по дате и времени
     events.sort(key=lambda ev: datetime.strptime(f"{ev['date']} {ev['time']}", "%d.%m.%Y %H:%M"))
     
-    now = datetime.now(ZoneInfo("Europe/Moscow"))
+    now = datetime.now()
 
     if not events:
         msg = await callback.message.answer("📭 Список событий пуст.")
