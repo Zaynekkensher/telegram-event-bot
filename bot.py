@@ -142,7 +142,7 @@ async def cb_list_events(callback: CallbackQuery):
     for ev in events:
         dt = datetime.strptime(f"{ev['date']} {ev['time']}", "%d.%m.%Y %H:%M")
         block = (
-            f"{ev['id']}. 📅 <b>{ev['date']} {ev['time']}</b>\n"
+            f"{ev['event_number']}. 📅 <b>{ev['date']} {ev['time']}</b>\n"
             f"🏷 {ev['type']} {ev['city']}\n"
             f"🏛 {ev['place']}\n"
             f"📝 {ev['description']}\n"
@@ -172,8 +172,8 @@ async def cb_delete(callback: CallbackQuery):
     keyboard = []
     for ev in events:
         button = InlineKeyboardButton(
-            text=f"❌ Удалить: {ev['id']} {ev['date']} {ev['time']} {ev['type']} {ev['city']}",
-            callback_data=f"delete_{ev['id']}"
+            text=f"❌ Удалить: {ev['event_number']} {ev['date']} {ev['time']} {ev['type']} {ev['city']}",
+            callback_data=f"delete_{ev['event_number']}"
         )
         keyboard.append([button])
 
@@ -187,8 +187,8 @@ async def delete_by_number(message: Message):
     if not message.text.isdigit():
         return
 
-    event_id = int(message.text)
-    await delete_event(message.chat.id, event_id)
+    event_number = int(message.text)
+    await delete_event(message.chat.id, event_number)
     msg = await message.answer("✅ Событие удалено.")
     await asyncio.sleep(10)
     await msg.delete()
@@ -197,8 +197,8 @@ async def delete_by_number(message: Message):
 @dp.callback_query(F.data.startswith("delete_"))
 async def handle_delete_callback(callback: CallbackQuery):
     try:
-        event_id = int(callback.data.split("_")[1])
-        await delete_event(callback.message.chat.id, event_id)
+        event_number = int(callback.data.split("_")[1])
+        await delete_event(callback.message.chat.id, event_number)
         msg = await callback.message.answer("🗑 Событие удалено.")
         await asyncio.sleep(10)
         await msg.delete()
