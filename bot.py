@@ -6,7 +6,6 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from fastapi import FastAPI, Request
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiogram.webhook.runner import WebhookRunner
 import asyncio
 import re
 import json
