@@ -152,7 +152,7 @@ async def cb_list_events(callback: CallbackQuery):
         text += block + "\n"
 
     sent = await callback.message.answer(text)
-    await asyncio.sleep(100)
+    await asyncio.sleep(10)
     await sent.delete()
     await callback.answer()
 
