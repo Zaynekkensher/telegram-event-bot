@@ -11,6 +11,7 @@ import os
 import shlex
 from event_db import add_event, get_events, delete_event
 import asyncio
+from zoneinfo import ZoneInfo
 
 if not os.getenv("BOT_TOKEN"):
     raise RuntimeError("❌ Переменная окружения BOT_TOKEN не задана")
@@ -126,6 +127,8 @@ async def cb_list_events(callback: CallbackQuery):
     events = await get_events(callback.message.chat.id)
     # Сортировка по дате и времени
     events.sort(key=lambda ev: datetime.strptime(f"{ev['date']} {ev['time']}", "%d.%m.%Y %H:%M"))
+    
+    now = datetime.now(ZoneInfo("Europe/Moscow"))
 
     if not events:
         msg = await callback.message.answer("📭 Список событий пуст.")
@@ -144,7 +147,7 @@ async def cb_list_events(callback: CallbackQuery):
             f"🏛 {ev['place']}\n"
             f"📝 {ev['description']}\n"
         )
-        if dt < datetime.now():
+        if dt < now:
             block = f"<i><span class='tg-spoiler'>{block}</span></i>"
         text += block + "\n"
 
