@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 import shlex
 from event_db import add_event, get_events, delete_event
+import asyncio
 
 if not os.getenv("BOT_TOKEN"):
     raise RuntimeError("❌ Переменная окружения BOT_TOKEN не задана")
@@ -113,7 +114,9 @@ async def cb_list_events(callback: CallbackQuery):
             block = f"<i><span class='tg-spoiler'>{block}</span></i>"
         text += block + "\n"
 
-    await callback.message.answer(text)
+    sent = await callback.message.answer(text)
+    await asyncio.sleep(10)
+    await sent.delete()
     await callback.answer()
 
 @dp.callback_query(F.data == "delete_event")
@@ -134,7 +137,9 @@ async def cb_delete(callback: CallbackQuery):
         )
         keyboard.append([button])
 
-    await callback.message.answer("Выберите событие для удаления:", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+    sent = await callback.message.answer("Выберите событие для удаления:", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
+    await asyncio.sleep(10)
+    await sent.delete()
     await callback.answer()
 
 @dp.message()
@@ -156,8 +161,6 @@ async def handle_delete_callback(callback: CallbackQuery):
     except Exception as e:
         await callback.message.answer(f"⚠ Ошибка при удалении: {e}")
         await callback.answer()
-
-import asyncio
 
 if __name__ == "__main__":
     asyncio.run(dp.start_polling(bot))
