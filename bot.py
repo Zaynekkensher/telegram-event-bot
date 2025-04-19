@@ -182,7 +182,7 @@ async def delete_by_number(message: Message):
 
 # === Запуск ===
 PORT = int(os.getenv("PORT", 10000))
-WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
+WEBHOOK_PATH = "/webhook"
 WEBHOOK_BASE = os.getenv("WEBHOOK_BASE")  # например https://your-bot.onrender.com
 WEBHOOK_URL = f"{WEBHOOK_BASE}{WEBHOOK_PATH}"
 
